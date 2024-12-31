@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Minifier</title>
+    <style>
+        /* General body styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        /* Center content */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            color: #4CAF50;
+        }
+
+        /* Section titles */
+        h2 {
+            font-size: 1.8em;
+            color: #333;
+        }
+
+        /* Select and Textarea styles */
+        select, textarea {
+            width: 100%;
+            padding: 15px;
+            font-size: 1em;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+
+        textarea {
+            height: 200px;
+            resize: vertical;
+        }
+
+        /* Button styles */
+        button {
+            padding: 12px 20px;
+            font-size: 1em;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Result section */
+        .result-section {
+            margin-top: 30px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        /* Slider styles */
+        .slider-container {
+            margin-top: 10px;
+            font-size: 1em;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Iframe container */
+        iframe {
+            width: 562px;
+            height: 400px;
+            border: none;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+
+        /* Background toggle buttons */
+        .bg-toggle button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .bg-toggle button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Script Minifier</h1>
+            <p>Pilih jenis script yang ingin diperkecil, masukkan script-nya, dan klik tombol untuk memperkecil ukuran script. Anda juga bisa menjalankan hasilnya langsung.</p>
+        </header>
+
+        <!-- Pilihan jenis script -->
+        <div>
+            <label for="scriptType">Pilih Jenis Script:</label>
+            <select id="scriptType">
+                <option value="html">HTML</option>
+                <option value="javascript">JavaScript</option>
+                <option value="css">CSS</option>
+            </select>
+        </div>
+
+        <!-- Input area -->
+        <textarea id="inputScript" placeholder="Masukkan script di sini..."></textarea>
+
+        <!-- Action buttons -->
+        <div>
+            <button onclick="minifyScript()">Perkecil Script</button>
+        </div>
+
+        <!-- Result Section -->
+        <div class="result-section">
+            <h2>Hasil Minified:</h2>
+            <textarea id="result" readonly></textarea>
+            <div>
+                <button onclick="copyResult()">Copy Hasil</button>
+                <button onclick="runScript()">Run Hasil</button>
+            </div>
+        </div>
+
+        <!-- Slider untuk mengatur tinggi iframe -->
+        <div class="slider-container">
+            <label for="iframeHeight">Tinggi Tampilan: </label>
+            <input type="range" id="iframeHeight" min="200" max="800" value="400" oninput="adjustIframeSize()">
+            <span id="iframeHeightValue">400px</span>
+        </div>
+
+        <!-- Iframe untuk hasil output -->
+        <iframe id="outputFrame" title="Hasil Output"></iframe>
+
+        <!-- Background toggle buttons -->
+        <div class="bg-toggle">
+            <button onclick="setLightMode()">Mode Terang</button>
+            <button onclick="setDarkMode()">Mode Gelap</button>
+        </div>
+    </div>
+
+    <script>
+        // Fungsi untuk memperkecil script berdasarkan jenis yang dipilih
+        function minifyScript() {
+            let scriptInput = document.getElementById('inputScript').value;
+            let scriptType = document.getElementById('scriptType').value;
+            let minifiedScript;
+
+            if (scriptType === 'html') {
+                minifiedScript = scriptInput.replace(/\s+/g, ' ').replace(/>\s+</g, '><').trim();
+            } else if (scriptType === 'javascript') {
+                minifiedScript = scriptInput.replace(/\s+/g, ' ').replace(/(\/\*[\s\S]*?\*\/|\/\/.*$)/gm, '').replace(/\n/g, '').trim();
+            } else if (scriptType === 'css') {
+                minifiedScript = scriptInput.replace(/\s+/g, ' ').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\n/g, '').trim();
+            }
+
+            document.getElementById('result').value = minifiedScript;
+        }
+
+        // Fungsi untuk menjalankan script
+        function runScript() {
+            let scriptType = document.getElementById('scriptType').value;
+            let scriptContent = document.getElementById('result').value;
+            let outputFrame = document.getElementById('outputFrame');
+
+            if (scriptType === 'html') {
+                outputFrame.srcdoc = scriptContent;
+            } else if (scriptType === 'javascript') {
+                outputFrame.srcdoc = `<script>${scriptContent}<\/script>`;
+            } else if (scriptType === 'css') {
+                outputFrame.srcdoc = `<style>${scriptContent}</style><div>Preview CSS berhasil ditampilkan!</div>`;
+            } else {
+                alert('Jenis script tidak dikenali!');
+            }
+        }
+
+        // Fungsi untuk menyalin hasil minified
+        function copyResult() {
+            let resultText = document.getElementById('result');
+            resultText.select();
+            document.execCommand('copy');
+            alert('Hasil minified telah disalin!');
+        }
+
+        // Fungsi untuk mengatur tinggi iframe
+        function adjustIframeSize() {
+            let height = document.getElementById('iframeHeight').value;
+            let outputFrame = document.getElementById('outputFrame');
+            outputFrame.style.height = height + 'px';
+            document.getElementById('iframeHeightValue').textContent = height + 'px';
+        }
+
+        // Fungsi untuk mengubah ke mode terang
+        function setLightMode() {
+            document.body.style.backgroundColor = 'white';
+            document.body.style.color = '#333';
+        }
+
+        // Fungsi untuk mengubah ke mode gelap
+        function setDarkMode() {
+            document.body.style.backgroundColor = '#333';
+            document.body.style.color = 'white';
+        }
+    </script>
+
+</body>
+</html>
